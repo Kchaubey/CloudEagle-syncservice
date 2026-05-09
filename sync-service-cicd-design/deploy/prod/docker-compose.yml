@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  sync-service:
+    image: registry.company.com/sync-service:latest
+    container_name: sync-service-prod
+
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MONGO_URI: ${MONGO_URI}
+
+    ports:
+      - "8082:8080"
+
+    restart: always

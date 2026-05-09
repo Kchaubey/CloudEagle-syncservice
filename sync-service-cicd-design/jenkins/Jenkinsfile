@@ -1,0 +1,95 @@
+pipeline {
+    agent any
+
+    environment {
+        REGISTRY = "registry.company.com"
+        APP_NAME = "sync-service"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: "${BRANCH_NAME}",
+                url: 'https://github.com/company/sync-service.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('SonarQube Scan') {
+            steps {
+                sh 'mvn sonar:sonar'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                docker build -t ${REGISTRY}/${APP_NAME}:${IMAGE_TAG} .
+                '''
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh '''
+                docker push ${REGISTRY}/${APP_NAME}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Deploy QA') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                sh './scripts/deploy.sh qa'
+            }
+        }
+
+        stage('Deploy Staging') {
+            when {
+                branch 'staging'
+            }
+            steps {
+                sh './scripts/deploy.sh staging'
+            }
+        }
+
+        stage('Production Approval') {
+            when {
+                branch 'main'
+            }
+            steps {
+                input message: 'Approve Production Deployment?'
+            }
+        }
+
+        stage('Deploy Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh './scripts/deploy.sh prod'
+            }
+        }
+    }
+
+    post {
+        failure {
+            sh './scripts/rollback.sh'
+        }
+    }
+}

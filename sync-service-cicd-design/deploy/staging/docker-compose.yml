@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  sync-service:
+    image: registry.company.com/sync-service:latest
+    container_name: sync-service-staging
+
+    environment:
+      SPRING_PROFILES_ACTIVE: staging
+      MONGO_URI: ${MONGO_URI}
+
+    ports:
+      - "8081:8080"
+
+    restart: always
