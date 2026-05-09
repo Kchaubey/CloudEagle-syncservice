@@ -13,5 +13,5 @@ This repository contains the proposed infrastructure setup for deploying the Spr
 
 ## Repository Structure
 
-- docs/infra-design.md
-- diagram/gcp-architecture.png
+-infra-design-document/infra-design.md
+- infra-design-document/gcp-architecture.png
